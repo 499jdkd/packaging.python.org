@@ -1,93 +1,122 @@
-===========================
-Python Packaging User Guide
-===========================
+pip install pygame
+import pygame
+import time
+import random
 
-.. meta::
-   :description: The Python Packaging User Guide (PyPUG) is a collection of tutorials and guides for packaging Python software.
-   :keywords: python, packaging, guide, tutorial
+# Инициализация pygame
+pygame.init()
 
-.. toctree::
-   :maxdepth: 2
-   :hidden:
+# Определение цветов
+white = (255, 255, 255)
+yellow = (255, 255, 102)
+black = (0, 0, 0)
+red = (213, 50, 80)
+green = (0, 255, 0)
+blue = (50, 153, 213)
 
-   overview
-   flow
-   tutorials/index
-   guides/index
-   discussions/index
-   specifications/index
-   key_projects
-   glossary
-   support
-   contribute
-   news
+# Определение размеров окна
+dis_width = 800
+dis_height = 600
 
-Welcome to the *Python Packaging User Guide*, a collection of tutorials and
-references to help you distribute and install Python packages with modern
-tools.
+dis = pygame.display.set_mode((dis_width, dis_height))
+pygame.display.set_caption('Snake Game')
 
-This guide is maintained on `GitHub`_ by the :doc:`Python Packaging Authority <pypa:index>`. We
-happily accept :doc:`contributions and feedback <contribute>`. 😊
+clock = pygame.time.Clock()
+snake_block = 10
+snake_speed = 15
 
-.. _GitHub: https://github.com/pypa/packaging.python.org
+font_style = pygame.font.SysFont("bahnschrift", 25)
+score_font = pygame.font.SysFont("comicsansms", 35)
 
 
-Overview and Flow
-=================
+def our_snake(snake_block, snake_list):
+    for x in snake_list:
+        pygame.draw.rect(dis, black, [x[0], x[1], snake_block, snake_block])
 
-.. note::
 
-   Building your understanding of Python packaging is a journey. Patience and
-   continuous improvement are key to success. The overview and flow sections
-   provide a starting point for understanding the Python packaging ecosystem.
+def message(msg, color):
+    mesg = font_style.render(msg, True, color)
+    dis.blit(mesg, [dis_width / 6, dis_height / 3])
 
-The :doc:`overview` explains Python packaging
-and its use when preparing and distributing projects.
-This section helps you build understanding about selecting the tools and
-processes that are most suitable for your use case.
-It includes what packaging is, the problems that it solves, and
-key considerations.
 
-To get an overview of the workflow used to publish your code, see
-:doc:`packaging flow <flow>`.
+def gameLoop():
+    game_over = False
+    game_close = False
 
-Tutorials
-=========
+    x1 = dis_width / 2
+    y1 = dis_height / 2
 
-Tutorials walk through the steps needed to complete a project for the first time.
-Tutorials aim to help you succeed and provide a starting point for future
-exploration.
-The :doc:`tutorials/index` section includes:
+    x1_change = 0
+    y1_change = 0
 
-* A :doc:`tutorial on installing packages <tutorials/installing-packages>`
-* A :doc:`tutorial on managing application dependencies <tutorials/managing-dependencies>`
-  in a version controlled project
-* A :doc:`tutorial on packaging and distributing <tutorials/packaging-projects>`
-  your project
+    snake_List = []
+    Length_of_snake = 1
 
-Guides
-======
+    foodx = round(random.randrange(0, dis_width - snake_block) / 10.0) * 10.0
+    foody = round(random.randrange(0, dis_height - snake_block) / 10.0) * 10.0
 
-Guides provide steps to perform a specific task. Guides are more focused on
-users who are already familiar with Python packaging and are looking for
-specific information.
+    while not game_over:
 
-The :doc:`guides/index` section provides "how to" instructions in three major
-areas: package installation; building and distributing packages; miscellaneous
-topics.
+        while game_close == True:
+            dis.fill(blue)
+            message("You Lost! Press Q-Quit or C-Play Again", red)
+            pygame.display.update()
 
-Explanations and Discussions
-============================
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_q:
+                        game_over = True
+                        game_close = False
+                    if event.key == pygame.K_c:
+                        gameLoop()
 
-The :doc:`discussions/index` section for in-depth explanations and discussion
-about topics, such as:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                game_over = True
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    x1_change = -snake_block
+                    y1_change = 0
+                elif event.key == pygame.K_RIGHT:
+                    x1_change = snake_block
+                    y1_change = 0
+                elif event.key == pygame.K_UP:
+                    y1_change = -snake_block
+                    x1_change = 0
+                elif event.key == pygame.K_DOWN:
+                    y1_change = snake_block
+                    x1_change = 0
 
-* :doc:`discussions/deploying-python-applications`
-* :doc:`discussions/pip-vs-easy-install`
+        if x1 >= dis_width or x1 < 0 or y1 >= dis_height or y1 < 0:
+            game_close = True
+        x1 += x1_change
+        y1 += y1_change
+        dis.fill(blue)
+        pygame.draw.rect(dis, green, [foodx, foody, snake_block, snake_block])
+        snake_Head = []
+        snake_Head.append(x1)
+        snake_Head.append(y1)
+        snake_List.append(snake_Head)
+        if len(snake_List) > Length_of_snake:
+            del snake_List[0]
 
-Reference
-=========
+        for x in snake_List[:-1]:
+            if x == snake_Head:
+                game_close = True
 
-* The :doc:`specifications/index` section for packaging interoperability specifications.
-* The list of :doc:`other projects <key_projects>` maintained by members of the Python Packaging Authority.
-* The :doc:`glossary` for definitions of terms used in Python packaging.
+        our_snake(snake_block, snake_List)
+
+        pygame.display.update()
+
+        if x1 == foodx and y1 == foody:
+            foodx = round(random.randrange(0, dis_width - snake_block) / 10.0) * 10.0
+            foody = round(random.randrange(0, dis_height - snake_block) / 10.0) * 10.0
+            Length_of_snake += 1
+
+        clock.tick(snake_speed)
+
+    pygame.quit()
+    quit()
+
+
+gameLoop()
